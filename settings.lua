@@ -65,10 +65,14 @@ local function toggleEventListener()
 			Nampower:RegisterEvent("SPELL_QUEUE_EVENT", spellQueueEvent)
 		else
 			DEFAULT_CHAT_FRAME:AddMessage("Superwow required to display queued spells.")
-			Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+			if Nampower:IsEventRegistered("SPELL_QUEUE_EVENT") then
+				Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+			end
 		end
 	else
-		Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+		if Nampower:IsEventRegistered("SPELL_QUEUE_EVENT") then
+			Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+		end
 	end
 end
 
