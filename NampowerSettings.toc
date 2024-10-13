@@ -2,6 +2,7 @@
 ## Title: Nampower Settings
 ## Notes: the companion compatibility addon to the mod of the same name.
 ## Author: Pepopo
+## SavedVariablesPerCharacter: NampowerSettingsDB
 ## X-Embeds: Ace2, FuBarPlugin-2.0, CompostLib, DewDropLib, TabletLib
 
 libs\AceLibrary\AceLibrary.lua

@@ -6,37 +6,89 @@ if not has_pepo_nam then
 end
 
 Nampower = AceLibrary("AceAddon-2.0"):new("AceEvent-2.0", "AceDebug-2.0", "AceModuleCore-2.0", "AceConsole-2.0", "AceDB-2.0", "AceHook-2.1")
+Nampower:RegisterDB("NampowerSettingsDB")
+Nampower:RegisterDefaults("profile", {
+	show_queued_spell = false,
+	queued_spell_posx = 0,
+	queued_spell_posy = 0,
+	queued_spell_size = 16,
+	queued_spell_enable_mouse = true,
+})
 Nampower.frame = CreateFrame("Frame", "Nampower", UIParent)
 
---NP_QueueCastTimeSpells - Whether to enable spell queuing for spells with a cast time. 0 to disable, 1 to enable. Default is 1.
---
---NP_QueueInstantSpells - Whether to enable spell queuing for instant cast spells tied to gcd. 0 to disable, 1 to enable. Default is 1.
---
---NP_QueueOnSwingSpells - Whether to enable on swing spell queuing. 0 to disable, 1 to enable. Default is 1.
---
---NP_QueueChannelingSpells - Whether to enable channeling spell queuing. 0 to disable, 1 to enable. Default is 1.
---
---NP_QueueTargetingSpells - Whether to enable terrain targeting spell queuing. 0 to disable, 1 to enable. Default is 1.
---
---NP_SpellQueueWindowMs - The window in ms before a cast finishes where the next will get queued. Default is 500.
---
---NP_OnSwingBufferCooldownMs - The cooldown time in ms after an on swing spell before you can queue on swing spells. Default is 500.
---
---NP_ChannelQueueWindowMs - The window in ms before a channel finishes where the next will get queued. Default is 1500.
---
---NP_TargetingQueueWindowMs - The window in ms before a terrain targeting spell finishes where the next will get queued. Default is 500.
---
---NP_MinBufferTimeMs - The minimum buffer delay in ms added to each cast (covered more below). The dynamic buffer adjustments will not go below this value. Default is 55.
---
---NP_NonGcdBufferTimeMs - The buffer delay in ms added AFTER each cast that is not tied to the gcd. Default is 100.
---
---NP_MaxBufferIncreaseMs - The maximum amount of time in ms to increase the buffer by when the server rejects a cast. This prevents getting too long of a buffer if you happen to get a ton of rejections in a row. Default is 30.
---
---NP_RetryServerRejectedSpells - Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS. 0 to disable, 1 to enable. Default is 1.
---
---NP_QuickcastTargetingSpells - Whether to enable quick casting for ALL spells with terrain targeting. This will cause the spell to instantly cast on your cursor without waiting for you to confirm the targeting circle. Queuing targeting spells will use quickcasting regardless of this value (couldn't get it to work without doing this). 0 to disable, 1 to enable. Default is 0.
---
---NP_ReplaceMatchingNonGcdCategory - Whether to replace any queued non gcd spell when a new non gcd spell with the same StartRecoveryCategory is cast (more explanation below). 0 to disable, 1 to enable. Default is 0.
+-- setup queued spell frame
+Nampower.queued_spell = CreateFrame("Frame", "Queued Spell", UIParent)
+Nampower.queued_spell:SetFrameStrata("HIGH")
+Nampower.queued_spell.texture = Nampower.queued_spell:CreateTexture(nil, "OVERLAY")
+Nampower.queued_spell.texture:SetAllPoints()
+Nampower.queued_spell.texture:SetTexCoord(.08, .92, .08, .92)
+Nampower.queued_spell.texture:SetTexture("Interface\\Icons\\Spell_Nature_HealingWaveLesser") -- set test texture
+
+-- setup dragging
+Nampower.queued_spell:RegisterForDrag("LeftButton")
+Nampower.queued_spell:SetMovable(true)
+
+Nampower.queued_spell:SetScript("OnDragStart", function()
+	this:StartMoving()
+end)
+
+local function saveQueuedSpellPosition()
+	Nampower.db.profile.queued_spell_posx = Nampower.queued_spell:GetLeft()
+	Nampower.db.profile.queued_spell_posy = Nampower.queued_spell:GetTop()
+end
+
+Nampower.queued_spell:SetScript("OnDragStop", function()
+	this:StopMovingOrSizing()
+	saveQueuedSpellPosition()
+end)
+
+local ON_SWING_QUEUED = 0
+local ON_SWING_QUEUE_POPPE = 1
+local NORMAL_QUEUED = 2
+local NORMAL_QUEUE_POPPED = 3
+local NON_GCD_QUEUED = 4
+local NON_GCD_QUEUE_POPPED = 5
+
+local function spellQueueEvent(eventCode, spellId)
+	if eventCode == NORMAL_QUEUED or eventCode == NON_GCD_QUEUED then
+		local _, _, texture = SpellInfo(spellId)
+		Nampower.queued_spell.texture:SetTexture(texture)
+		Nampower.queued_spell:Show()
+	elseif eventCode == NORMAL_QUEUE_POPPED or eventCode == NON_GCD_QUEUE_POPPED then
+		Nampower.queued_spell:Hide()
+	end
+end
+
+local function toggleEventListener()
+	if Nampower.db.profile.show_queued_spell then
+		if SpellInfo then
+			Nampower:RegisterEvent("SPELL_QUEUE_EVENT", spellQueueEvent)
+		else
+			DEFAULT_CHAT_FRAME:AddMessage("Superwow required to display queued spells.")
+			Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+		end
+	else
+		Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
+	end
+end
+
+function Nampower:OnEnable()
+	Nampower.queued_spell:EnableMouse(Nampower.db.profile.queued_spell_enable_mouse)
+
+	-- set scale
+	local x = Nampower.db.profile.queued_spell_posx
+	local y = Nampower.db.profile.queued_spell_posy
+	local size = Nampower.db.profile.queued_spell_size
+
+	-- set saved position
+	Nampower.queued_spell:ClearAllPoints()
+	Nampower.queued_spell:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", x, y)
+	Nampower.queued_spell:SetWidth(size)
+	Nampower.queued_spell:SetHeight(size)
+	Nampower.queued_spell:Hide()
+
+	toggleEventListener()
+end
 
 Nampower.cmdtable = {
 	type = "group",
@@ -290,7 +342,88 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-	}
+		spacer4 = {
+			type = "header",
+			name = " ",
+			order = 50,
+		},
+		queued_spell_options = {
+			type = "group",
+			name = "Queued Spell Display Options",
+			desc = "Options for displaying an icon for the queued spell",
+			order = 51,
+			args = {
+				enabled = {
+					type = "toggle",
+					name = "Display queued spell icon",
+					desc = "Whether to display an icon of the queued spell",
+					order = 1,
+					get = function()
+						return Nampower.db.profile.show_queued_spell
+					end,
+					set = function(v)
+						Nampower.db.profile.show_queued_spell = v
+						toggleEventListener()
+					end,
+				},
+				size = {
+					type = "range",
+					name = "Icon size",
+					desc = "Change the spell icon size",
+					order = 2,
+					min = 8,
+					max = 48,
+					step = 1,
+					get = function()
+						return Nampower.db.profile.queued_spell_size
+					end,
+					set = function(v)
+						Nampower.db.profile.queued_spell_size = v
+						Nampower.queued_spell:SetWidth(v)
+						Nampower.queued_spell:SetHeight(v)
+					end,
+				},
+				draggable = {
+					type = "toggle",
+					name = "Allow dragging",
+					desc = "Whether to allow interaction with the queued spell icon so you can move it around",
+					order = 3,
+					get = function()
+						return Nampower.db.profile.queued_spell_enable_mouse
+					end,
+					set = function(v)
+						Nampower.db.profile.queued_spell_enable_mouse = v
+						Nampower.queued_spell:EnableMouse(v)
+					end,
+				},
+				reset_position = {
+					type = "execute",
+					name = "Reset Position",
+					desc = "Reset the position of the queued spell icon",
+					order = 4,
+					func = function()
+						local scale = Nampower.queued_spell:GetEffectiveScale()
+						Nampower.queued_spell:ClearAllPoints()
+						Nampower.queued_spell:SetPoint("TOPLEFT", UIParent, "BOTTOMLEFT", 500 / scale, 500 / scale)
+						saveQueuedSpellPosition()
+					end,
+				},
+				test = {
+					type = "execute",
+					name = "Show/Hide for positioning",
+					desc = "Test the queued spell icon and position it to your liking",
+					order = 5,
+					func = function()
+						if Nampower.queued_spell:IsVisible() then
+							Nampower.queued_spell:Hide()
+						else
+							Nampower.queued_spell:Show()
+						end
+					end,
+				},
+			},
+		},
+	},
 }
 
 local deuce = Nampower:NewModule("Nampower Options Menu")
