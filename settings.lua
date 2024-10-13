@@ -43,7 +43,7 @@ Nampower.queued_spell:SetScript("OnDragStop", function()
 end)
 
 local ON_SWING_QUEUED = 0
-local ON_SWING_QUEUE_POPPE = 1
+local ON_SWING_QUEUE_POPPED = 1
 local NORMAL_QUEUED = 2
 local NORMAL_QUEUE_POPPED = 3
 local NON_GCD_QUEUED = 4
@@ -51,7 +51,7 @@ local NON_GCD_QUEUE_POPPED = 5
 
 local function spellQueueEvent(eventCode, spellId)
 	if eventCode == NORMAL_QUEUED or eventCode == NON_GCD_QUEUED then
-		local _, _, texture = SpellInfo(spellId)
+		local _, _, texture = SpellInfo(spellId) -- superwow function
 		Nampower.queued_spell.texture:SetTexture(texture)
 		Nampower.queued_spell:Show()
 	elseif eventCode == NORMAL_QUEUE_POPPED or eventCode == NON_GCD_QUEUE_POPPED then
