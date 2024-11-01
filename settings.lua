@@ -346,7 +346,43 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
+		optimize_buffer_using_packet_timings = {
+			type = "toggle",
+			name = "Optimize Buffer Using Packet Timings",
+			desc = "Whether to attempt to optimize your buffer using your latency and server packet timings",
+			order = 44,
+			get = function()
+				return GetCVar("NP_OptimizeBufferUsingPacketTimings") == "1"
+			end,
+			set = function(v)
+				if v == true then
+					SetCVar("NP_OptimizeBufferUsingPacketTimings", "1")
+				else
+					SetCVar("NP_OptimizeBufferUsingPacketTimings", "0")
+				end
+			end,
+		},
 		spacer4 = {
+			type = "header",
+			name = " ",
+			order = 46,
+		},
+		channel_latency_reduction_percentage = {
+			type = "range",
+			name = "Channel Latency Reduction (%)",
+			desc = "The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks",
+			order = 48,
+			min = 0,
+			max = 100,
+			step = 1,
+			get = function()
+				return GetCVar("NP_ChannelLatencyReductionPercentage")
+			end,
+			set = function(v)
+				SetCVar("NP_ChannelLatencyReductionPercentage", v)
+			end,
+		},
+		spacer5 = {
 			type = "header",
 			name = " ",
 			order = 50,
