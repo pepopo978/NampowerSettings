@@ -246,6 +246,27 @@ Nampower.cmdtable = {
 		spacer2 = {
 			type = "header",
 			name = " ",
+			order = 28,
+		},
+		interrupt_channels_outside_queue_window = {
+			type = "toggle",
+			name = "Interrupt Channels Outside Queue Window",
+			desc = "Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window",
+			order = 29,
+			get = function()
+				return GetCVar("NP_InterruptChannelsOutsideQueueWindow") == "1"
+			end,
+			set = function(v)
+				if v == true then
+					SetCVar("NP_InterruptChannelsOutsideQueueWindow", "1")
+				else
+					SetCVar("NP_InterruptChannelsOutsideQueueWindow", "0")
+				end
+			end,
+		},
+		spacer22 = {
+			type = "header",
+			name = " ",
 			order = 30,
 		},
 		min_buffer_time_ms = {
