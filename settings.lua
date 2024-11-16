@@ -178,6 +178,22 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
+		queue_spells_on_cooldown = {
+			type = "toggle",
+			name = "Queue Spells Coming Off Cooldown",
+			desc = "Whether to enable spell queuing for spells coming off cooldown",
+			order = 6,
+			get = function()
+				return GetCVar("NP_QueueSpellsOnCooldown") == "1"
+			end,
+			set = function(v)
+				if v == true then
+					SetCVar("NP_QueueSpellsOnCooldown", "1")
+				else
+					SetCVar("NP_QueueSpellsOnCooldown", "0")
+				end
+			end,
+		},
 		spacer = {
 			type = "header",
 			name = " ",
@@ -241,6 +257,21 @@ Nampower.cmdtable = {
 			end,
 			set = function(v)
 				SetCVar("NP_TargetingQueueWindowMs", v)
+			end,
+		},
+		cooldown_queue_window_ms = {
+			type = "range",
+			name = "Cooldown Queue Window (ms)",
+			desc = "The window in ms before a spell coming off cooldown finishes where the next will get queued",
+			order = 25,
+			min = 0,
+			max = 5000,
+			step = 50,
+			get = function()
+				return GetCVar("NP_CooldownQueueWindowMs")
+			end,
+			set = function(v)
+				SetCVar("NP_CooldownQueueWindowMs", v)
 			end,
 		},
 		spacer2 = {
