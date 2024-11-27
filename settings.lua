@@ -8,6 +8,7 @@ end
 Nampower = AceLibrary("AceAddon-2.0"):new("AceEvent-2.0", "AceDebug-2.0", "AceModuleCore-2.0", "AceConsole-2.0", "AceDB-2.0", "AceHook-2.1")
 Nampower:RegisterDB("NampowerSettingsDB")
 Nampower:RegisterDefaults("profile", {
+	per_character_settings = false,
 	show_queued_spell = false,
 	queued_spell_posx = 0,
 	queued_spell_posy = 0,
@@ -76,6 +77,26 @@ local function toggleEventListener()
 	end
 end
 
+-- used when turning on per character settings
+function Nampower:SavePerCharacterSettings()
+	for settingKey, settingData in pairs(Nampower.cmdtable.args) do
+		if string.find(settingKey, "NP_") == 1 then
+			settingData.set(settingData.get()) -- trigger the set function for each setting with the current value
+		end
+	end
+end
+
+function Nampower:ApplySavedSettings()
+	for settingKey, settingData in pairs(Nampower.cmdtable.args) do
+		-- only apply settings that are prefixed with NP_
+		if string.find(settingKey, "NP_") == 1 then
+			if Nampower.db.profile[settingKey] then
+				settingData.set(Nampower.db.profile[settingKey])
+			end
+		end
+	end
+end
+
 function Nampower:OnEnable()
 	Nampower.queued_spell:EnableMouse(Nampower.db.profile.queued_spell_enable_mouse)
 
@@ -91,6 +112,11 @@ function Nampower:OnEnable()
 	Nampower.queued_spell:SetHeight(size)
 	Nampower.queued_spell:Hide()
 
+	-- if per character settings are enabled, apply them
+	if Nampower.db.profile.per_character_settings then
+		Nampower:ApplySavedSettings()
+	end
+
 	toggleEventListener()
 end
 
@@ -98,15 +124,33 @@ Nampower.cmdtable = {
 	type = "group",
 	handler = Nampower,
 	args = {
-		queue_cast_time_spells = {
+		per_character_settings = {
+			type = "toggle",
+			name = "Enable Per Character Settings",
+			desc = "Whether to use per character settings.  This will cause settings saved in your character's wtf file to override the global settings in Config.wtf.",
+			order = 1,
+			get = function()
+				return Nampower.db.profile.per_character_settings
+			end,
+			set = function(v)
+				if v ~= Nampower.db.profile.per_character_settings then
+					Nampower.db.profile.per_character_settings = v
+					if v == true then
+						Nampower:SavePerCharacterSettings()
+					end
+				end
+			end,
+		},
+		NP_QueueCastTimeSpells = {
 			type = "toggle",
 			name = "Queue Cast Time Spells",
 			desc = "Whether to enable spell queuing for spells with a cast time",
-			order = 1,
+			order = 5,
 			get = function()
 				return GetCVar("NP_QueueCastTimeSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueCastTimeSpells = v
 				if v == true then
 					SetCVar("NP_QueueCastTimeSpells", "1")
 				else
@@ -114,15 +158,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		queue_instant_spells = {
+		NP_QueueInstantSpells = {
 			type = "toggle",
 			name = "Queue Instant Spells",
 			desc = "Whether to enable spell queuing for instant cast spells tied to gcd",
-			order = 2,
+			order = 10,
 			get = function()
 				return GetCVar("NP_QueueInstantSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueInstantSpells = v
 				if v == true then
 					SetCVar("NP_QueueInstantSpells", "1")
 				else
@@ -130,15 +175,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		queue_on_swing_spells = {
+		NP_QueueOnSwingSpells = {
 			type = "toggle",
 			name = "Queue On Swing Spells",
 			desc = "Whether to enable on swing spell queuing",
-			order = 3,
+			order = 15,
 			get = function()
 				return GetCVar("NP_QueueOnSwingSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueOnSwingSpells = v
 				if v == true then
 					SetCVar("NP_QueueOnSwingSpells", "1")
 				else
@@ -146,15 +192,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		queue_channeling_spells = {
+		NP_QueueChannelingSpells = {
 			type = "toggle",
 			name = "Queue Channeling Spells",
 			desc = "Whether to enable channeling spell queuing",
-			order = 4,
+			order = 20,
 			get = function()
 				return GetCVar("NP_QueueChannelingSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueChannelingSpells = v
 				if v == true then
 					SetCVar("NP_QueueChannelingSpells", "1")
 				else
@@ -162,15 +209,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		queue_targeting_spells = {
+		NP_QueueTargetingSpells = {
 			type = "toggle",
 			name = "Queue Targeting Spells",
 			desc = "Whether to enable terrain targeting spell queuing",
-			order = 5,
+			order = 25,
 			get = function()
 				return GetCVar("NP_QueueTargetingSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueTargetingSpells = v
 				if v == true then
 					SetCVar("NP_QueueTargetingSpells", "1")
 				else
@@ -178,15 +226,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		queue_spells_on_cooldown = {
+		NP_QueueSpellsOnCooldown = {
 			type = "toggle",
 			name = "Queue Spells Coming Off Cooldown",
 			desc = "Whether to enable spell queuing for spells coming off cooldown",
-			order = 6,
+			order = 30,
 			get = function()
 				return GetCVar("NP_QueueSpellsOnCooldown") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QueueSpellsOnCooldown = v
 				if v == true then
 					SetCVar("NP_QueueSpellsOnCooldown", "1")
 				else
@@ -197,13 +246,13 @@ Nampower.cmdtable = {
 		spacer = {
 			type = "header",
 			name = " ",
-			order = 11,
+			order = 35,
 		},
-		spell_queue_window_ms = {
+		NP_SpellQueueWindowMs = {
 			type = "range",
 			name = "Spell Queue Window (ms)",
 			desc = "The window in ms before a cast finishes where the next will get queued",
-			order = 21,
+			order = 40,
 			min = 0,
 			max = 5000,
 			step = 50,
@@ -211,14 +260,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_SpellQueueWindowMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_SpellQueueWindowMs = v
 				SetCVar("NP_SpellQueueWindowMs", v)
 			end,
 		},
-		on_swing_buffer_cooldown_ms = {
+		NP_OnSwingBufferCooldownMs = {
 			type = "range",
 			name = "On Swing Buffer Cooldown (ms)",
 			desc = "The cooldown time in ms after an on swing spell before you can queue on swing spells",
-			order = 22,
+			order = 45,
 			min = 0,
 			max = 5000,
 			step = 50,
@@ -226,14 +276,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_OnSwingBufferCooldownMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_OnSwingBufferCooldownMs = v
 				SetCVar("NP_OnSwingBufferCooldownMs", v)
 			end,
 		},
-		channel_queue_window_ms = {
+		NP_ChannelQueueWindowMs = {
 			type = "range",
 			name = "Channel Queue Window (ms)",
 			desc = "The window in ms before a channel finishes where the next will get queued",
-			order = 23,
+			order = 50,
 			min = 0,
 			max = 5000,
 			step = 50,
@@ -241,14 +292,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_ChannelQueueWindowMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_ChannelQueueWindowMs = v
 				SetCVar("NP_ChannelQueueWindowMs", v)
 			end,
 		},
-		targeting_queue_window_ms = {
+		NP_TargetingQueueWindowMs = {
 			type = "range",
 			name = "Targeting Queue Window (ms)",
 			desc = "The window in ms before a terrain targeting spell finishes where the next will get queued",
-			order = 24,
+			order = 55,
 			min = 0,
 			max = 5000,
 			step = 50,
@@ -256,14 +308,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_TargetingQueueWindowMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_TargetingQueueWindowMs = v
 				SetCVar("NP_TargetingQueueWindowMs", v)
 			end,
 		},
-		cooldown_queue_window_ms = {
+		NP_CooldownQueueWindowMs = {
 			type = "range",
 			name = "Cooldown Queue Window (ms)",
 			desc = "The window in ms before a spell coming off cooldown finishes where the next will get queued",
-			order = 25,
+			order = 60,
 			min = 0,
 			max = 5000,
 			step = 50,
@@ -271,23 +324,25 @@ Nampower.cmdtable = {
 				return GetCVar("NP_CooldownQueueWindowMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_CooldownQueueWindowMs = v
 				SetCVar("NP_CooldownQueueWindowMs", v)
 			end,
 		},
 		spacer2 = {
 			type = "header",
 			name = " ",
-			order = 28,
+			order = 65,
 		},
-		interrupt_channels_outside_queue_window = {
+		NP_InterruptChannelsOutsideQueueWindow = {
 			type = "toggle",
 			name = "Interrupt Channels Outside Queue Window",
 			desc = "Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window",
-			order = 29,
+			order = 70,
 			get = function()
 				return GetCVar("NP_InterruptChannelsOutsideQueueWindow") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_InterruptChannelsOutsideQueueWindow = v
 				if v == true then
 					SetCVar("NP_InterruptChannelsOutsideQueueWindow", "1")
 				else
@@ -298,13 +353,13 @@ Nampower.cmdtable = {
 		spacer22 = {
 			type = "header",
 			name = " ",
-			order = 30,
+			order = 75,
 		},
-		min_buffer_time_ms = {
+		NP_MinBufferTimeMs = {
 			type = "range",
 			name = "Minimum Buffer Time (ms)",
 			desc = "The minimum buffer delay in ms added to each cast",
-			order = 31,
+			order = 80,
 			min = 0,
 			max = 300,
 			step = 1,
@@ -312,14 +367,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_MinBufferTimeMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_MinBufferTimeMs = v
 				SetCVar("NP_MinBufferTimeMs", v)
 			end,
 		},
-		non_gcd_buffer_time_ms = {
+		NP_NonGcdBufferTimeMs = {
 			type = "range",
 			name = "Non GCD Buffer Time (ms)",
 			desc = "The buffer delay in ms added AFTER each cast that is not tied to the gcd",
-			order = 32,
+			order = 85,
 			min = 0,
 			max = 300,
 			step = 1,
@@ -327,14 +383,15 @@ Nampower.cmdtable = {
 				return GetCVar("NP_NonGcdBufferTimeMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_NonGcdBufferTimeMs = v
 				SetCVar("NP_NonGcdBufferTimeMs", v)
 			end,
 		},
-		max_buffer_increase_ms = {
+		NP_MaxBufferIncreaseMs = {
 			type = "range",
 			name = "Max Buffer Increase (ms)",
 			desc = "The maximum amount of time in ms to increase the buffer by when the server rejects a cast",
-			order = 33,
+			order = 90,
 			min = 0,
 			max = 100,
 			step = 5,
@@ -342,23 +399,25 @@ Nampower.cmdtable = {
 				return GetCVar("NP_MaxBufferIncreaseMs")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_MaxBufferIncreaseMs = v
 				SetCVar("NP_MaxBufferIncreaseMs", v)
 			end,
 		},
 		spacer3 = {
 			type = "header",
 			name = " ",
-			order = 40,
+			order = 95,
 		},
-		retry_server_rejected_spells = {
+		NP_RetryServerRejectedSpells = {
 			type = "toggle",
 			name = "Retry Server Rejected Spells",
 			desc = "Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS",
-			order = 41,
+			order = 100,
 			get = function()
 				return GetCVar("NP_RetryServerRejectedSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_RetryServerRejectedSpells = v
 				if v == true then
 					SetCVar("NP_RetryServerRejectedSpells", "1")
 				else
@@ -366,15 +425,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		quickcast_targeting_spells = {
+		NP_QuickcastTargetingSpells = {
 			type = "toggle",
 			name = "Quickcast Targeting Spells",
 			desc = "Whether to enable quick casting for ALL spells with terrain targeting",
-			order = 42,
+			order = 105,
 			get = function()
 				return GetCVar("NP_QuickcastTargetingSpells") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_QuickcastTargetingSpells = v
 				if v == true then
 					SetCVar("NP_QuickcastTargetingSpells", "1")
 				else
@@ -382,15 +442,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		replace_matching_non_gcd_category = {
+		NP_ReplaceMatchingNonGcdCategory = {
 			type = "toggle",
 			name = "Replace Matching Non GCD Category",
 			desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same StartRecoveryCategory is cast",
-			order = 43,
+			order = 110,
 			get = function()
 				return GetCVar("NP_ReplaceMatchingNonGcdCategory") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_ReplaceMatchingNonGcdCategory = v
 				if v == true then
 					SetCVar("NP_ReplaceMatchingNonGcdCategory", "1")
 				else
@@ -398,15 +459,16 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		optimize_buffer_using_packet_timings = {
+		NP_OptimizeBufferUsingPacketTimings = {
 			type = "toggle",
 			name = "Optimize Buffer Using Packet Timings",
 			desc = "Whether to attempt to optimize your buffer using your latency and server packet timings",
-			order = 44,
+			order = 115,
 			get = function()
 				return GetCVar("NP_OptimizeBufferUsingPacketTimings") == "1"
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_OptimizeBufferUsingPacketTimings = v
 				if v == true then
 					SetCVar("NP_OptimizeBufferUsingPacketTimings", "1")
 				else
@@ -417,13 +479,13 @@ Nampower.cmdtable = {
 		spacer4 = {
 			type = "header",
 			name = " ",
-			order = 46,
+			order = 120,
 		},
-		channel_latency_reduction_percentage = {
+		NP_ChannelLatencyReductionPercentage = {
 			type = "range",
 			name = "Channel Latency Reduction (%)",
 			desc = "The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks",
-			order = 48,
+			order = 125,
 			min = 0,
 			max = 100,
 			step = 1,
@@ -431,25 +493,26 @@ Nampower.cmdtable = {
 				return GetCVar("NP_ChannelLatencyReductionPercentage")
 			end,
 			set = function(v)
+				Nampower.db.profile.NP_ChannelLatencyReductionPercentage = v
 				SetCVar("NP_ChannelLatencyReductionPercentage", v)
 			end,
 		},
 		spacer5 = {
 			type = "header",
 			name = " ",
-			order = 50,
+			order = 130,
 		},
 		queued_spell_options = {
 			type = "group",
 			name = "Queued Spell Display Options",
 			desc = "Options for displaying an icon for the queued spell",
-			order = 51,
+			order = 135,
 			args = {
 				enabled = {
 					type = "toggle",
 					name = "Display queued spell icon",
 					desc = "Whether to display an icon of the queued spell",
-					order = 1,
+					order = 5,
 					get = function()
 						return Nampower.db.profile.show_queued_spell
 					end,
@@ -462,7 +525,7 @@ Nampower.cmdtable = {
 					type = "range",
 					name = "Icon size",
 					desc = "Change the spell icon size",
-					order = 2,
+					order = 10,
 					min = 8,
 					max = 48,
 					step = 1,
@@ -479,7 +542,7 @@ Nampower.cmdtable = {
 					type = "toggle",
 					name = "Allow dragging",
 					desc = "Whether to allow interaction with the queued spell icon so you can move it around",
-					order = 3,
+					order = 15,
 					get = function()
 						return Nampower.db.profile.queued_spell_enable_mouse
 					end,
@@ -492,7 +555,7 @@ Nampower.cmdtable = {
 					type = "execute",
 					name = "Reset Position",
 					desc = "Reset the position of the queued spell icon",
-					order = 4,
+					order = 20,
 					func = function()
 						local scale = Nampower.queued_spell:GetEffectiveScale()
 						Nampower.queued_spell:ClearAllPoints()
@@ -504,7 +567,7 @@ Nampower.cmdtable = {
 					type = "execute",
 					name = "Show/Hide for positioning",
 					desc = "Test the queued spell icon and position it to your liking",
-					order = 5,
+					order = 25,
 					func = function()
 						if Nampower.queued_spell:IsVisible() then
 							Nampower.queued_spell:Hide()
