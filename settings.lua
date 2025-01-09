@@ -244,6 +244,28 @@ Nampower.cmdtable = {
 			end,
 		},
 		spacer = {
+			type = "subheader1",
+			name = " ",
+			order = 31,
+		},
+		NP_PreventRightClickTargetChange = {
+			type = "toggle",
+			name = "Prevent Right Click Target Change",
+			desc = "Whether to prevent right-clicking from changing your current target.  If you don't have a target right click will still change your target even with this on.  This is mainly to prevent accidentally changing targets in combat when trying to adjust your camera.",
+			order = 32,
+			get = function()
+				return GetCVar("NP_PreventRightClickTargetChange") == "1"
+			end,
+			set = function(v)
+				Nampower.db.profile.NP_PreventRightClickTargetChange = v
+				if v == true then
+					SetCVar("NP_PreventRightClickTargetChange", "1")
+				else
+					SetCVar("NP_PreventRightClickTargetChange", "0")
+				end
+			end,
+		},
+		spacer = {
 			type = "header",
 			name = " ",
 			order = 35,
