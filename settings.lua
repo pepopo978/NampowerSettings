@@ -265,6 +265,23 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
+		NP_DoubleCastToEndChannelEarly = {
+			type = "toggle",
+			name = "Double Cast to End Channel Early",
+			desc = "Whether to allow double casting a spell within 350ms to end channeling on the next tick.  Takes into account your ChannelLatencyReductionPercentage.",
+			order = 33,
+			get = function()
+				return GetCVar("NP_DoubleCastToEndChannelEarly") == "1"
+			end,
+			set = function(v)
+				Nampower.db.profile.NP_DoubleCastToEndChannelEarly = v
+				if v == true then
+					SetCVar("NP_DoubleCastToEndChannelEarly", "1")
+				else
+					SetCVar("NP_DoubleCastToEndChannelEarly", "0")
+				end
+			end,
+		},
 		spacer = {
 			type = "header",
 			name = " ",
