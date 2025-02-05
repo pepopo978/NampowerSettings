@@ -127,7 +127,7 @@ Nampower.cmdtable = {
 		per_character_settings = {
 			type = "toggle",
 			name = "Enable Per Character Settings",
-			desc = "Whether to use per character settings.  This will cause settings saved in your character's wtf file to override the global settings in Config.wtf.",
+			desc = "Whether to use per character settings for all of the NP_ settings.  This will cause settings saved in your character's NampowerSettings.lua to override any global settings in Config.wtf.",
 			order = 1,
 			get = function()
 				return Nampower.db.profile.per_character_settings
