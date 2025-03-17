@@ -17,6 +17,27 @@ Nampower:RegisterDefaults("profile", {
 })
 Nampower.frame = CreateFrame("Frame", "Nampower", UIParent)
 
+function Nampower:HasMinimumVersion(major, minor, patch)
+	if GetNampowerVersion then
+		local installedMajor, installedMinor, installedPatch = GetNampowerVersion()
+
+		if installedMajor > major then
+			return true
+		elseif installedMajor == major and installedMinor > minor then
+			return true
+		elseif installedMajor == major and installedMinor == minor and installedPatch >= patch then
+			return true
+		end
+	end
+
+	return false
+end
+
+-- check if they have the latest nampower dll
+if not Nampower:HasMinimumVersion(2, 8, 6) then
+	DEFAULT_CHAT_FRAME:AddMessage("|cffffcc00Pepo Nampower update available.|cffffcc00  Some settings may be hidden until you update.  Replace your existing nampower.dll with the latest from https://github.com/pepopo978/nampower/releases")
+end
+
 -- setup queued spell frame
 Nampower.queued_spell = CreateFrame("Frame", "Queued Spell", UIParent)
 Nampower.queued_spell:SetFrameStrata("HIGH")
@@ -84,10 +105,40 @@ function Nampower:SavePerCharacterSettings()
 			settingData.set(settingData.get()) -- trigger the set function for each setting with the current value
 		end
 	end
+
+	for settingKey, settingData in pairs(Nampower.cmdtable.args.queue_windows.args) do
+		if string.find(settingKey, "NP_") == 1 then
+			settingData.set(settingData.get()) -- trigger the set function for each setting with the current value
+		end
+	end
+
+	for settingKey, settingData in pairs(Nampower.cmdtable.args.advanced_options.args) do
+		if string.find(settingKey, "NP_") == 1 then
+			settingData.set(settingData.get()) -- trigger the set function for each setting with the current value
+		end
+	end
 end
 
 function Nampower:ApplySavedSettings()
 	for settingKey, settingData in pairs(Nampower.cmdtable.args) do
+		-- only apply settings that are prefixed with NP_
+		if string.find(settingKey, "NP_") == 1 then
+			if Nampower.db.profile[settingKey] then
+				settingData.set(Nampower.db.profile[settingKey])
+			end
+		end
+	end
+
+	for settingKey, settingData in pairs(Nampower.cmdtable.args.queue_windows.args) do
+		-- only apply settings that are prefixed with NP_
+		if string.find(settingKey, "NP_") == 1 then
+			if Nampower.db.profile[settingKey] then
+				settingData.set(Nampower.db.profile[settingKey])
+			end
+		end
+	end
+
+	for settingKey, settingData in pairs(Nampower.cmdtable.args.advanced_options.args) do
 		-- only apply settings that are prefixed with NP_
 		if string.find(settingKey, "NP_") == 1 then
 			if Nampower.db.profile[settingKey] then
@@ -243,309 +294,288 @@ Nampower.cmdtable = {
 				end
 			end,
 		},
-		spacer = {
-			type = "subheader1",
+		spacera = {
+			type = "header",
 			name = " ",
 			order = 31,
 		},
-		NP_PreventRightClickTargetChange = {
-			type = "toggle",
-			name = "Prevent Right Click Target Change",
-			desc = "Whether to prevent right-clicking from changing your current target when in combat.  If you don't have a target right click will still change your target even with this on.  This is mainly to prevent accidentally changing targets in combat when trying to adjust your camera.",
-			order = 32,
-			get = function()
-				return GetCVar("NP_PreventRightClickTargetChange") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_PreventRightClickTargetChange = v
-				if v == true then
-					SetCVar("NP_PreventRightClickTargetChange", "1")
-				else
-					SetCVar("NP_PreventRightClickTargetChange", "0")
-				end
-			end,
-		},
-		NP_DoubleCastToEndChannelEarly = {
-			type = "toggle",
-			name = "Double Cast to End Channel Early",
-			desc = "Whether to allow double casting a spell within 350ms to end channeling on the next tick.  Takes into account your ChannelLatencyReductionPercentage.",
-			order = 33,
-			get = function()
-				return GetCVar("NP_DoubleCastToEndChannelEarly") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_DoubleCastToEndChannelEarly = v
-				if v == true then
-					SetCVar("NP_DoubleCastToEndChannelEarly", "1")
-				else
-					SetCVar("NP_DoubleCastToEndChannelEarly", "0")
-				end
-			end,
-		},
-		spacer = {
-			type = "header",
-			name = " ",
-			order = 35,
-		},
-		NP_SpellQueueWindowMs = {
-			type = "range",
-			name = "Spell Queue Window (ms)",
-			desc = "The window in ms before a cast finishes where the next will get queued",
+		queue_windows = {
+			type = "group",
+			name = "Queue Windows",
+			desc = "How much time in ms you have before a cast ends to queue different types of spells",
 			order = 40,
-			min = 0,
-			max = 5000,
-			step = 50,
-			get = function()
-				return GetCVar("NP_SpellQueueWindowMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_SpellQueueWindowMs = v
-				SetCVar("NP_SpellQueueWindowMs", v)
-			end,
+			args = {
+				NP_SpellQueueWindowMs = {
+					type = "range",
+					name = "Spell Queue Window (ms)",
+					desc = "The window in ms before a cast finishes where the next will get queued",
+					order = 40,
+					min = 0,
+					max = 5000,
+					step = 50,
+					get = function()
+						return GetCVar("NP_SpellQueueWindowMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_SpellQueueWindowMs = v
+						SetCVar("NP_SpellQueueWindowMs", v)
+					end,
+				},
+				NP_OnSwingBufferCooldownMs = {
+					type = "range",
+					name = "On Swing Buffer Cooldown (ms)",
+					desc = "The cooldown time in ms after an on swing spell before you can queue on swing spells",
+					order = 45,
+					min = 0,
+					max = 5000,
+					step = 50,
+					get = function()
+						return GetCVar("NP_OnSwingBufferCooldownMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_OnSwingBufferCooldownMs = v
+						SetCVar("NP_OnSwingBufferCooldownMs", v)
+					end,
+				},
+				NP_ChannelQueueWindowMs = {
+					type = "range",
+					name = "Channel Queue Window (ms)",
+					desc = "The window in ms before a channel finishes where the next will get queued",
+					order = 50,
+					min = 0,
+					max = 5000,
+					step = 50,
+					get = function()
+						return GetCVar("NP_ChannelQueueWindowMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_ChannelQueueWindowMs = v
+						SetCVar("NP_ChannelQueueWindowMs", v)
+					end,
+				},
+				NP_TargetingQueueWindowMs = {
+					type = "range",
+					name = "Targeting Queue Window (ms)",
+					desc = "The window in ms before a terrain targeting spell finishes where the next will get queued",
+					order = 55,
+					min = 0,
+					max = 5000,
+					step = 50,
+					get = function()
+						return GetCVar("NP_TargetingQueueWindowMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_TargetingQueueWindowMs = v
+						SetCVar("NP_TargetingQueueWindowMs", v)
+					end,
+				},
+				NP_CooldownQueueWindowMs = {
+					type = "range",
+					name = "Cooldown Queue Window (ms)",
+					desc = "The window in ms before a spell coming off cooldown finishes where the next will get queued",
+					order = 60,
+					min = 0,
+					max = 5000,
+					step = 50,
+					get = function()
+						return GetCVar("NP_CooldownQueueWindowMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_CooldownQueueWindowMs = v
+						SetCVar("NP_CooldownQueueWindowMs", v)
+					end,
+				}
+			},
 		},
-		NP_OnSwingBufferCooldownMs = {
-			type = "range",
-			name = "On Swing Buffer Cooldown (ms)",
-			desc = "The cooldown time in ms after an on swing spell before you can queue on swing spells",
-			order = 45,
-			min = 0,
-			max = 5000,
-			step = 50,
-			get = function()
-				return GetCVar("NP_OnSwingBufferCooldownMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_OnSwingBufferCooldownMs = v
-				SetCVar("NP_OnSwingBufferCooldownMs", v)
-			end,
-		},
-		NP_ChannelQueueWindowMs = {
-			type = "range",
-			name = "Channel Queue Window (ms)",
-			desc = "The window in ms before a channel finishes where the next will get queued",
+		spacerb = {
+			type = "header",
+			name = " ",
 			order = 50,
-			min = 0,
-			max = 5000,
-			step = 50,
-			get = function()
-				return GetCVar("NP_ChannelQueueWindowMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_ChannelQueueWindowMs = v
-				SetCVar("NP_ChannelQueueWindowMs", v)
-			end,
 		},
-		NP_TargetingQueueWindowMs = {
-			type = "range",
-			name = "Targeting Queue Window (ms)",
-			desc = "The window in ms before a terrain targeting spell finishes where the next will get queued",
-			order = 55,
-			min = 0,
-			max = 5000,
-			step = 50,
-			get = function()
-				return GetCVar("NP_TargetingQueueWindowMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_TargetingQueueWindowMs = v
-				SetCVar("NP_TargetingQueueWindowMs", v)
-			end,
-		},
-		NP_CooldownQueueWindowMs = {
-			type = "range",
-			name = "Cooldown Queue Window (ms)",
-			desc = "The window in ms before a spell coming off cooldown finishes where the next will get queued",
+		advanced_options = {
+			type = "group",
+			name = "Advanced options",
+			desc = "Collection of various advanced options",
 			order = 60,
-			min = 0,
-			max = 5000,
-			step = 50,
-			get = function()
-				return GetCVar("NP_CooldownQueueWindowMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_CooldownQueueWindowMs = v
-				SetCVar("NP_CooldownQueueWindowMs", v)
-			end,
+			args = {
+				NP_DoubleCastToEndChannelEarly = {
+					type = "toggle",
+					name = "Double Cast to End Channel Early",
+					desc = "Whether to allow double casting a spell within 350ms to end channeling on the next tick.  Takes into account your ChannelLatencyReductionPercentage.",
+					order = 33,
+					get = function()
+						return GetCVar("NP_DoubleCastToEndChannelEarly") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_DoubleCastToEndChannelEarly = v
+						if v == true then
+							SetCVar("NP_DoubleCastToEndChannelEarly", "1")
+						else
+							SetCVar("NP_DoubleCastToEndChannelEarly", "0")
+						end
+					end,
+				},
+				NP_InterruptChannelsOutsideQueueWindow = {
+					type = "toggle",
+					name = "Interrupt Channels Outside Queue Window",
+					desc = "Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window",
+					order = 70,
+					get = function()
+						return GetCVar("NP_InterruptChannelsOutsideQueueWindow") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_InterruptChannelsOutsideQueueWindow = v
+						if v == true then
+							SetCVar("NP_InterruptChannelsOutsideQueueWindow", "1")
+						else
+							SetCVar("NP_InterruptChannelsOutsideQueueWindow", "0")
+						end
+					end,
+				},
+				NP_RetryServerRejectedSpells = {
+					type = "toggle",
+					name = "Retry Server Rejected Spells",
+					desc = "Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS",
+					order = 100,
+					get = function()
+						return GetCVar("NP_RetryServerRejectedSpells") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_RetryServerRejectedSpells = v
+						if v == true then
+							SetCVar("NP_RetryServerRejectedSpells", "1")
+						else
+							SetCVar("NP_RetryServerRejectedSpells", "0")
+						end
+					end,
+				},
+				NP_QuickcastTargetingSpells = {
+					type = "toggle",
+					name = "Quickcast Targeting Spells",
+					desc = "Whether to enable quick casting for ALL spells with terrain targeting",
+					order = 105,
+					get = function()
+						return GetCVar("NP_QuickcastTargetingSpells") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_QuickcastTargetingSpells = v
+						if v == true then
+							SetCVar("NP_QuickcastTargetingSpells", "1")
+						else
+							SetCVar("NP_QuickcastTargetingSpells", "0")
+						end
+					end,
+				},
+				NP_ReplaceMatchingNonGcdCategory = {
+					type = "toggle",
+					name = "Replace Matching Non GCD Category",
+					desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same StartRecoveryCategory is cast",
+					order = 110,
+					get = function()
+						return GetCVar("NP_ReplaceMatchingNonGcdCategory") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_ReplaceMatchingNonGcdCategory = v
+						if v == true then
+							SetCVar("NP_ReplaceMatchingNonGcdCategory", "1")
+						else
+							SetCVar("NP_ReplaceMatchingNonGcdCategory", "0")
+						end
+					end,
+				},
+				NP_OptimizeBufferUsingPacketTimings = {
+					type = "toggle",
+					name = "Optimize Buffer Using Packet Timings",
+					desc = "Whether to attempt to optimize your buffer using your latency and server packet timings",
+					order = 115,
+					get = function()
+						return GetCVar("NP_OptimizeBufferUsingPacketTimings") == "1"
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_OptimizeBufferUsingPacketTimings = v
+						if v == true then
+							SetCVar("NP_OptimizeBufferUsingPacketTimings", "1")
+						else
+							SetCVar("NP_OptimizeBufferUsingPacketTimings", "0")
+						end
+					end,
+				},
+				NP_MinBufferTimeMs = {
+					type = "range",
+					name = "Minimum Buffer Time (ms)",
+					desc = "The minimum buffer delay in ms added to each cast",
+					order = 80,
+					min = 0,
+					max = 300,
+					step = 1,
+					get = function()
+						return GetCVar("NP_MinBufferTimeMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_MinBufferTimeMs = v
+						SetCVar("NP_MinBufferTimeMs", v)
+					end,
+				},
+				NP_NonGcdBufferTimeMs = {
+					type = "range",
+					name = "Non GCD Buffer Time (ms)",
+					desc = "The buffer delay in ms added AFTER each cast that is not tied to the gcd",
+					order = 85,
+					min = 0,
+					max = 300,
+					step = 1,
+					get = function()
+						return GetCVar("NP_NonGcdBufferTimeMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_NonGcdBufferTimeMs = v
+						SetCVar("NP_NonGcdBufferTimeMs", v)
+					end,
+				},
+				NP_MaxBufferIncreaseMs = {
+					type = "range",
+					name = "Max Buffer Increase (ms)",
+					desc = "The maximum amount of time in ms to increase the buffer by when the server rejects a cast",
+					order = 90,
+					min = 0,
+					max = 100,
+					step = 5,
+					get = function()
+						return GetCVar("NP_MaxBufferIncreaseMs")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_MaxBufferIncreaseMs = v
+						SetCVar("NP_MaxBufferIncreaseMs", v)
+					end,
+				},
+				NP_ChannelLatencyReductionPercentage = {
+					type = "range",
+					name = "Channel Latency Reduction (%)",
+					desc = "The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks",
+					order = 125,
+					min = 0,
+					max = 100,
+					step = 1,
+					get = function()
+						return GetCVar("NP_ChannelLatencyReductionPercentage")
+					end,
+					set = function(v)
+						Nampower.db.profile.NP_ChannelLatencyReductionPercentage = v
+						SetCVar("NP_ChannelLatencyReductionPercentage", v)
+					end,
+				}
+			},
 		},
-		spacer2 = {
+		spacerc = {
 			type = "header",
 			name = " ",
-			order = 65,
-		},
-		NP_InterruptChannelsOutsideQueueWindow = {
-			type = "toggle",
-			name = "Interrupt Channels Outside Queue Window",
-			desc = "Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window",
 			order = 70,
-			get = function()
-				return GetCVar("NP_InterruptChannelsOutsideQueueWindow") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_InterruptChannelsOutsideQueueWindow = v
-				if v == true then
-					SetCVar("NP_InterruptChannelsOutsideQueueWindow", "1")
-				else
-					SetCVar("NP_InterruptChannelsOutsideQueueWindow", "0")
-				end
-			end,
-		},
-		spacer22 = {
-			type = "header",
-			name = " ",
-			order = 75,
-		},
-		NP_MinBufferTimeMs = {
-			type = "range",
-			name = "Minimum Buffer Time (ms)",
-			desc = "The minimum buffer delay in ms added to each cast",
-			order = 80,
-			min = 0,
-			max = 300,
-			step = 1,
-			get = function()
-				return GetCVar("NP_MinBufferTimeMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_MinBufferTimeMs = v
-				SetCVar("NP_MinBufferTimeMs", v)
-			end,
-		},
-		NP_NonGcdBufferTimeMs = {
-			type = "range",
-			name = "Non GCD Buffer Time (ms)",
-			desc = "The buffer delay in ms added AFTER each cast that is not tied to the gcd",
-			order = 85,
-			min = 0,
-			max = 300,
-			step = 1,
-			get = function()
-				return GetCVar("NP_NonGcdBufferTimeMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_NonGcdBufferTimeMs = v
-				SetCVar("NP_NonGcdBufferTimeMs", v)
-			end,
-		},
-		NP_MaxBufferIncreaseMs = {
-			type = "range",
-			name = "Max Buffer Increase (ms)",
-			desc = "The maximum amount of time in ms to increase the buffer by when the server rejects a cast",
-			order = 90,
-			min = 0,
-			max = 100,
-			step = 5,
-			get = function()
-				return GetCVar("NP_MaxBufferIncreaseMs")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_MaxBufferIncreaseMs = v
-				SetCVar("NP_MaxBufferIncreaseMs", v)
-			end,
-		},
-		spacer3 = {
-			type = "header",
-			name = " ",
-			order = 95,
-		},
-		NP_RetryServerRejectedSpells = {
-			type = "toggle",
-			name = "Retry Server Rejected Spells",
-			desc = "Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS",
-			order = 100,
-			get = function()
-				return GetCVar("NP_RetryServerRejectedSpells") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_RetryServerRejectedSpells = v
-				if v == true then
-					SetCVar("NP_RetryServerRejectedSpells", "1")
-				else
-					SetCVar("NP_RetryServerRejectedSpells", "0")
-				end
-			end,
-		},
-		NP_QuickcastTargetingSpells = {
-			type = "toggle",
-			name = "Quickcast Targeting Spells",
-			desc = "Whether to enable quick casting for ALL spells with terrain targeting",
-			order = 105,
-			get = function()
-				return GetCVar("NP_QuickcastTargetingSpells") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_QuickcastTargetingSpells = v
-				if v == true then
-					SetCVar("NP_QuickcastTargetingSpells", "1")
-				else
-					SetCVar("NP_QuickcastTargetingSpells", "0")
-				end
-			end,
-		},
-		NP_ReplaceMatchingNonGcdCategory = {
-			type = "toggle",
-			name = "Replace Matching Non GCD Category",
-			desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same StartRecoveryCategory is cast",
-			order = 110,
-			get = function()
-				return GetCVar("NP_ReplaceMatchingNonGcdCategory") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_ReplaceMatchingNonGcdCategory = v
-				if v == true then
-					SetCVar("NP_ReplaceMatchingNonGcdCategory", "1")
-				else
-					SetCVar("NP_ReplaceMatchingNonGcdCategory", "0")
-				end
-			end,
-		},
-		NP_OptimizeBufferUsingPacketTimings = {
-			type = "toggle",
-			name = "Optimize Buffer Using Packet Timings",
-			desc = "Whether to attempt to optimize your buffer using your latency and server packet timings",
-			order = 115,
-			get = function()
-				return GetCVar("NP_OptimizeBufferUsingPacketTimings") == "1"
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_OptimizeBufferUsingPacketTimings = v
-				if v == true then
-					SetCVar("NP_OptimizeBufferUsingPacketTimings", "1")
-				else
-					SetCVar("NP_OptimizeBufferUsingPacketTimings", "0")
-				end
-			end,
-		},
-		spacer4 = {
-			type = "header",
-			name = " ",
-			order = 120,
-		},
-		NP_ChannelLatencyReductionPercentage = {
-			type = "range",
-			name = "Channel Latency Reduction (%)",
-			desc = "The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks",
-			order = 125,
-			min = 0,
-			max = 100,
-			step = 1,
-			get = function()
-				return GetCVar("NP_ChannelLatencyReductionPercentage")
-			end,
-			set = function(v)
-				Nampower.db.profile.NP_ChannelLatencyReductionPercentage = v
-				SetCVar("NP_ChannelLatencyReductionPercentage", v)
-			end,
-		},
-		spacer5 = {
-			type = "header",
-			name = " ",
-			order = 130,
 		},
 		queued_spell_options = {
 			type = "group",
 			name = "Queued Spell Display Options",
 			desc = "Options for displaying an icon for the queued spell",
-			order = 135,
+			order = 80,
 			args = {
 				enabled = {
 					type = "toggle",
@@ -617,8 +647,49 @@ Nampower.cmdtable = {
 				},
 			},
 		},
+		spacer6 = {
+			type = "header",
+			name = " ",
+			order = 90,
+		},
+		NP_PreventRightClickTargetChange = {
+			type = "toggle",
+			name = "Prevent Right Click Target Change",
+			desc = "Whether to prevent right-clicking from changing your current target when in combat.  If you don't have a target right click will still change your target even with this on.  This is mainly to prevent accidentally changing targets in combat when trying to adjust your camera.",
+			order = 100,
+			get = function()
+				return GetCVar("NP_PreventRightClickTargetChange") == "1"
+			end,
+			set = function(v)
+				Nampower.db.profile.NP_PreventRightClickTargetChange = v
+				if v == true then
+					SetCVar("NP_PreventRightClickTargetChange", "1")
+				else
+					SetCVar("NP_PreventRightClickTargetChange", "0")
+				end
+			end,
+		},
 	},
 }
+
+if Nampower:HasMinimumVersion(2, 8, 6) then
+	Nampower.cmdtable.args.NP_NameplateDistance = {
+		type = "range",
+		name = "Nameplate Distance",
+		desc = "The distance in yards to show nameplates",
+		order = 110,
+		min = 5,
+		max = 200,
+		step = 1,
+		get = function()
+			return GetCVar("NP_NameplateDistance")
+		end,
+		set = function(v)
+			Nampower.db.profile.NP_NameplateDistance = v
+			SetCVar("NP_NameplateDistance", v)
+		end,
+	}
+end
 
 local deuce = Nampower:NewModule("Nampower Options Menu")
 deuce.hasFuBar = IsAddOnLoaded("FuBar") and FuBar
