@@ -123,7 +123,7 @@ function Nampower:ApplySavedSettings()
 	for settingKey, settingData in pairs(Nampower.cmdtable.args) do
 		-- only apply settings that are prefixed with NP_
 		if string.find(settingKey, "NP_") == 1 then
-			if Nampower.db.profile[settingKey] then
+			if Nampower.db.profile[settingKey]~= nil then
 				settingData.set(Nampower.db.profile[settingKey])
 			end
 		end
@@ -132,7 +132,7 @@ function Nampower:ApplySavedSettings()
 	for settingKey, settingData in pairs(Nampower.cmdtable.args.queue_windows.args) do
 		-- only apply settings that are prefixed with NP_
 		if string.find(settingKey, "NP_") == 1 then
-			if Nampower.db.profile[settingKey] then
+			if Nampower.db.profile[settingKey]~= nil then
 				settingData.set(Nampower.db.profile[settingKey])
 			end
 		end
@@ -141,7 +141,7 @@ function Nampower:ApplySavedSettings()
 	for settingKey, settingData in pairs(Nampower.cmdtable.args.advanced_options.args) do
 		-- only apply settings that are prefixed with NP_
 		if string.find(settingKey, "NP_") == 1 then
-			if Nampower.db.profile[settingKey] then
+			if Nampower.db.profile[settingKey]~= nil then
 				settingData.set(Nampower.db.profile[settingKey])
 			end
 		end
