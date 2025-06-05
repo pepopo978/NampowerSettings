@@ -469,7 +469,7 @@ Nampower.cmdtable = {
 				NP_ReplaceMatchingNonGcdCategory = {
 					type = "toggle",
 					name = "Replace Matching Non GCD Category",
-					desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same StartRecoveryCategory is cast",
+					desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same non zero StartRecoveryCategory is cast.  Most trinkets and spells are category 0 which are ignored by this setting.  The primary use case is to switch which potion you have queued.",
 					order = 110,
 					get = function()
 						return GetCVar("NP_ReplaceMatchingNonGcdCategory") == "1"
