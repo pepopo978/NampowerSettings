@@ -1,7 +1,9 @@
+local L = AceLibrary("AceLocale-2.2"):new("NampowerSettings")
+
 -- No Nampower v2, no need for settings
 local has_pepo_nam = pcall(GetCVar, "NP_QueueCastTimeSpells")
 if not has_pepo_nam then
-	DEFAULT_CHAT_FRAME:AddMessage("|cffffcc00Pepo Nampower v2|cffffaaaa not present hiding settings.")
+	DEFAULT_CHAT_FRAME:AddMessage(L["|cffffcc00Pepo Nampower v2|cffffaaaa not present hiding settings."])
 	return
 end
 
@@ -35,7 +37,7 @@ end
 
 -- check if they have the latest nampower dll
 if not Nampower:HasMinimumVersion(2, 8, 6) then
-	DEFAULT_CHAT_FRAME:AddMessage("|cffffcc00Pepo Nampower update available.|cffffcc00  Some settings may be hidden until you update.  Replace your existing nampower.dll with the latest from https://github.com/pepopo978/nampower/releases")
+	DEFAULT_CHAT_FRAME:AddMessage(L["|cffffcc00Pepo Nampower update available.|cffffcc00  Some settings may be hidden until you update.  Replace your existing nampower.dll with the latest from https://github.com/pepopo978/nampower/releases"])
 end
 
 -- setup queued spell frame
@@ -86,7 +88,7 @@ local function toggleEventListener()
 		if SpellInfo then
 			Nampower:RegisterEvent("SPELL_QUEUE_EVENT", spellQueueEvent)
 		else
-			DEFAULT_CHAT_FRAME:AddMessage("Superwow required to display queued spells.")
+			DEFAULT_CHAT_FRAME:AddMessage(L["Superwow required to display queued spells."])
 			if Nampower:IsEventRegistered("SPELL_QUEUE_EVENT") then
 				Nampower:UnregisterEvent("SPELL_QUEUE_EVENT")
 			end
@@ -177,8 +179,8 @@ Nampower.cmdtable = {
 	args = {
 		per_character_settings = {
 			type = "toggle",
-			name = "Enable Per Character Settings",
-			desc = "Whether to use per character settings for all of the NP_ settings.  This will cause settings saved in your character's NampowerSettings.lua to override any global settings in Config.wtf.",
+			name = L["Enable Per Character Settings"],
+			desc = L["Whether to use per character settings for all of the NP_ settings.  This will cause settings saved in your character's NampowerSettings.lua to override any global settings in Config.wtf."],
 			order = 1,
 			get = function()
 				return Nampower.db.profile.per_character_settings
@@ -194,8 +196,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueCastTimeSpells = {
 			type = "toggle",
-			name = "Queue Cast Time Spells",
-			desc = "Whether to enable spell queuing for spells with a cast time",
+			name = L["Queue Cast Time Spells"],
+			desc = L["Whether to enable spell queuing for spells with a cast time"],
 			order = 5,
 			get = function()
 				return GetCVar("NP_QueueCastTimeSpells") == "1"
@@ -211,8 +213,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueInstantSpells = {
 			type = "toggle",
-			name = "Queue Instant Spells",
-			desc = "Whether to enable spell queuing for instant cast spells tied to gcd",
+			name = L["Queue Instant Spells"],
+			desc = L["Whether to enable spell queuing for instant cast spells tied to gcd"],
 			order = 10,
 			get = function()
 				return GetCVar("NP_QueueInstantSpells") == "1"
@@ -228,8 +230,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueOnSwingSpells = {
 			type = "toggle",
-			name = "Queue On Swing Spells",
-			desc = "Whether to enable on swing spell queuing",
+			name = L["Queue On Swing Spells"],
+			desc = L["Whether to enable on swing spell queuing"],
 			order = 15,
 			get = function()
 				return GetCVar("NP_QueueOnSwingSpells") == "1"
@@ -245,8 +247,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueChannelingSpells = {
 			type = "toggle",
-			name = "Queue Channeling Spells",
-			desc = "Whether to enable channeling spell queuing",
+			name = L["Queue Channeling Spells"],
+			desc = L["Whether to enable channeling spell queuing"],
 			order = 20,
 			get = function()
 				return GetCVar("NP_QueueChannelingSpells") == "1"
@@ -262,8 +264,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueTargetingSpells = {
 			type = "toggle",
-			name = "Queue Targeting Spells",
-			desc = "Whether to enable terrain targeting spell queuing",
+			name = L["Queue Targeting Spells"],
+			desc = L["Whether to enable terrain targeting spell queuing"],
 			order = 25,
 			get = function()
 				return GetCVar("NP_QueueTargetingSpells") == "1"
@@ -279,8 +281,8 @@ Nampower.cmdtable = {
 		},
 		NP_QueueSpellsOnCooldown = {
 			type = "toggle",
-			name = "Queue Spells Coming Off Cooldown",
-			desc = "Whether to enable spell queuing for spells coming off cooldown",
+			name = L["Queue Spells Coming Off Cooldown"],
+			desc = L["Whether to enable spell queuing for spells coming off cooldown"],
 			order = 30,
 			get = function()
 				return GetCVar("NP_QueueSpellsOnCooldown") == "1"
@@ -301,14 +303,14 @@ Nampower.cmdtable = {
 		},
 		queue_windows = {
 			type = "group",
-			name = "Queue Windows",
-			desc = "How much time in ms you have before a cast ends to queue different types of spells",
+			name = L["Queue Windows"],
+			desc = L["How much time in ms you have before a cast ends to queue different types of spells"],
 			order = 40,
 			args = {
 				NP_SpellQueueWindowMs = {
 					type = "range",
-					name = "Spell Queue Window (ms)",
-					desc = "The window in ms before a cast finishes where the next will get queued",
+					name = L["Spell Queue Window (ms)"],
+					desc = L["The window in ms before a cast finishes where the next will get queued"],
 					order = 40,
 					min = 0,
 					max = 5000,
@@ -323,8 +325,8 @@ Nampower.cmdtable = {
 				},
 				NP_OnSwingBufferCooldownMs = {
 					type = "range",
-					name = "On Swing Buffer Cooldown (ms)",
-					desc = "The cooldown time in ms after an on swing spell before you can queue on swing spells",
+					name = L["On Swing Buffer Cooldown (ms)"],
+					desc = L["The cooldown time in ms after an on swing spell before you can queue on swing spells"],
 					order = 45,
 					min = 0,
 					max = 5000,
@@ -339,8 +341,8 @@ Nampower.cmdtable = {
 				},
 				NP_ChannelQueueWindowMs = {
 					type = "range",
-					name = "Channel Queue Window (ms)",
-					desc = "The window in ms before a channel finishes where the next will get queued",
+					name = L["Channel Queue Window (ms)"],
+					desc = L["The window in ms before a channel finishes where the next will get queued"],
 					order = 50,
 					min = 0,
 					max = 5000,
@@ -355,8 +357,8 @@ Nampower.cmdtable = {
 				},
 				NP_TargetingQueueWindowMs = {
 					type = "range",
-					name = "Targeting Queue Window (ms)",
-					desc = "The window in ms before a terrain targeting spell finishes where the next will get queued",
+					name = L["Targeting Queue Window (ms)"],
+					desc = L["The window in ms before a terrain targeting spell finishes where the next will get queued"],
 					order = 55,
 					min = 0,
 					max = 5000,
@@ -371,8 +373,8 @@ Nampower.cmdtable = {
 				},
 				NP_CooldownQueueWindowMs = {
 					type = "range",
-					name = "Cooldown Queue Window (ms)",
-					desc = "The window in ms before a spell coming off cooldown finishes where the next will get queued",
+					name = L["Cooldown Queue Window (ms)"],
+					desc = L["The window in ms before a spell coming off cooldown finishes where the next will get queued"],
 					order = 60,
 					min = 0,
 					max = 5000,
@@ -394,14 +396,14 @@ Nampower.cmdtable = {
 		},
 		advanced_options = {
 			type = "group",
-			name = "Advanced options",
-			desc = "Collection of various advanced options",
+			name = L["Advanced options"],
+			desc = L["Collection of various advanced options"],
 			order = 60,
 			args = {
 				NP_DoubleCastToEndChannelEarly = {
 					type = "toggle",
-					name = "Double Cast to End Channel Early",
-					desc = "Whether to allow double casting a spell within 350ms to end channeling on the next tick.  Takes into account your ChannelLatencyReductionPercentage.",
+					name = L["Double Cast to End Channel Early"],
+					desc = L["Whether to allow double casting a spell within 350ms to end channeling on the next tick.  Takes into account your ChannelLatencyReductionPercentage."],
 					order = 33,
 					get = function()
 						return GetCVar("NP_DoubleCastToEndChannelEarly") == "1"
@@ -417,8 +419,8 @@ Nampower.cmdtable = {
 				},
 				NP_InterruptChannelsOutsideQueueWindow = {
 					type = "toggle",
-					name = "Interrupt Channels Outside Queue Window",
-					desc = "Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window",
+					name = L["Interrupt Channels Outside Queue Window"],
+					desc = L["Whether to allow interrupting channels (the original client behavior) when trying to cast a spell outside the channeling queue window"],
 					order = 70,
 					get = function()
 						return GetCVar("NP_InterruptChannelsOutsideQueueWindow") == "1"
@@ -434,8 +436,8 @@ Nampower.cmdtable = {
 				},
 				NP_RetryServerRejectedSpells = {
 					type = "toggle",
-					name = "Retry Server Rejected Spells",
-					desc = "Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS",
+					name = L["Retry Server Rejected Spells"],
+					desc = L["Whether to retry spells that are rejected by the server for these reasons: SPELL_FAILED_ITEM_NOT_READY, SPELL_FAILED_NOT_READY, SPELL_FAILED_SPELL_IN_PROGRESS"],
 					order = 100,
 					get = function()
 						return GetCVar("NP_RetryServerRejectedSpells") == "1"
@@ -451,8 +453,8 @@ Nampower.cmdtable = {
 				},
 				NP_QuickcastTargetingSpells = {
 					type = "toggle",
-					name = "Quickcast Targeting Spells",
-					desc = "Whether to enable quick casting for ALL spells with terrain targeting",
+					name = L["Quickcast Targeting Spells"],
+					desc = L["Whether to enable quick casting for ALL spells with terrain targeting"],
 					order = 105,
 					get = function()
 						return GetCVar("NP_QuickcastTargetingSpells") == "1"
@@ -468,8 +470,8 @@ Nampower.cmdtable = {
 				},
 				NP_ReplaceMatchingNonGcdCategory = {
 					type = "toggle",
-					name = "Replace Matching Non GCD Category",
-					desc = "Whether to replace any queued non gcd spell when a new non gcd spell with the same non zero StartRecoveryCategory is cast.  Most trinkets and spells are category 0 which are ignored by this setting.  The primary use case is to switch which potion you have queued.",
+					name = L["Replace Matching Non GCD Category"],
+					desc = L["Whether to replace any queued non gcd spell when a new non gcd spell with the same non zero StartRecoveryCategory is cast.  Most trinkets and spells are category 0 which are ignored by this setting.  The primary use case is to switch which potion you have queued."],
 					order = 110,
 					get = function()
 						return GetCVar("NP_ReplaceMatchingNonGcdCategory") == "1"
@@ -485,8 +487,8 @@ Nampower.cmdtable = {
 				},
 				NP_OptimizeBufferUsingPacketTimings = {
 					type = "toggle",
-					name = "Optimize Buffer Using Packet Timings",
-					desc = "Whether to attempt to optimize your buffer using your latency and server packet timings",
+					name = L["Optimize Buffer Using Packet Timings"],
+					desc = L["Whether to attempt to optimize your buffer using your latency and server packet timings"],
 					order = 115,
 					get = function()
 						return GetCVar("NP_OptimizeBufferUsingPacketTimings") == "1"
@@ -502,8 +504,8 @@ Nampower.cmdtable = {
 				},
 				NP_MinBufferTimeMs = {
 					type = "range",
-					name = "Minimum Buffer Time (ms)",
-					desc = "The minimum buffer delay in ms added to each cast",
+					name = L["Minimum Buffer Time (ms)"],
+					desc = L["The minimum buffer delay in ms added to each cast"],
 					order = 80,
 					min = 0,
 					max = 300,
@@ -518,8 +520,8 @@ Nampower.cmdtable = {
 				},
 				NP_NonGcdBufferTimeMs = {
 					type = "range",
-					name = "Non GCD Buffer Time (ms)",
-					desc = "The buffer delay in ms added AFTER each cast that is not tied to the gcd",
+					name = L["Non GCD Buffer Time (ms)"],
+					desc = L["The buffer delay in ms added AFTER each cast that is not tied to the gcd"],
 					order = 85,
 					min = 0,
 					max = 300,
@@ -534,8 +536,8 @@ Nampower.cmdtable = {
 				},
 				NP_MaxBufferIncreaseMs = {
 					type = "range",
-					name = "Max Buffer Increase (ms)",
-					desc = "The maximum amount of time in ms to increase the buffer by when the server rejects a cast",
+					name = L["Max Buffer Increase (ms)"],
+					desc = L["The maximum amount of time in ms to increase the buffer by when the server rejects a cast"],
 					order = 90,
 					min = 0,
 					max = 100,
@@ -550,8 +552,8 @@ Nampower.cmdtable = {
 				},
 				NP_ChannelLatencyReductionPercentage = {
 					type = "range",
-					name = "Channel Latency Reduction (%)",
-					desc = "The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks",
+					name = L["Channel Latency Reduction (%)"],
+					desc = L["The percentage of your latency to subtract from the end of a channel duration to optimize cast time while hopefully not losing any ticks"],
 					order = 125,
 					min = 0,
 					max = 100,
@@ -573,14 +575,14 @@ Nampower.cmdtable = {
 		},
 		queued_spell_options = {
 			type = "group",
-			name = "Queued Spell Display Options",
-			desc = "Options for displaying an icon for the queued spell",
+			name = L["Queued Spell Display Options"],
+			desc = L["Options for displaying an icon for the queued spell"],
 			order = 80,
 			args = {
 				enabled = {
 					type = "toggle",
-					name = "Display queued spell icon",
-					desc = "Whether to display an icon of the queued spell",
+					name = L["Display queued spell icon"],
+					desc = L["Whether to display an icon of the queued spell"],
 					order = 5,
 					get = function()
 						return Nampower.db.profile.show_queued_spell
@@ -592,8 +594,8 @@ Nampower.cmdtable = {
 				},
 				size = {
 					type = "range",
-					name = "Icon size",
-					desc = "Change the spell icon size",
+					name = L["Icon size"],
+					desc = L["Change the spell icon size"],
 					order = 10,
 					min = 8,
 					max = 48,
@@ -609,8 +611,8 @@ Nampower.cmdtable = {
 				},
 				draggable = {
 					type = "toggle",
-					name = "Allow dragging",
-					desc = "Whether to allow interaction with the queued spell icon so you can move it around",
+					name = L["Allow dragging"],
+					desc = L["Whether to allow interaction with the queued spell icon so you can move it around"],
 					order = 15,
 					get = function()
 						return Nampower.db.profile.queued_spell_enable_mouse
@@ -622,8 +624,8 @@ Nampower.cmdtable = {
 				},
 				reset_position = {
 					type = "execute",
-					name = "Reset Position",
-					desc = "Reset the position of the queued spell icon",
+					name = L["Reset Position"],
+					desc = L["Reset the position of the queued spell icon"],
 					order = 20,
 					func = function()
 						local scale = Nampower.queued_spell:GetEffectiveScale()
@@ -634,8 +636,8 @@ Nampower.cmdtable = {
 				},
 				test = {
 					type = "execute",
-					name = "Show/Hide for positioning",
-					desc = "Test the queued spell icon and position it to your liking",
+					name = L["Show/Hide for positioning"],
+					desc = L["Test the queued spell icon and position it to your liking"],
 					order = 25,
 					func = function()
 						if Nampower.queued_spell:IsVisible() then
@@ -654,8 +656,8 @@ Nampower.cmdtable = {
 		},
 		NP_PreventRightClickTargetChange = {
 			type = "toggle",
-			name = "Prevent Right Click Target Change",
-			desc = "Whether to prevent right-clicking from changing your current target when in combat.  If you don't have a target right click will still change your target even with this on.  This is mainly to prevent accidentally changing targets in combat when trying to adjust your camera.",
+			name = L["Prevent Right Click Target Change"],
+			desc = L["Whether to prevent right-clicking from changing your current target when in combat.  If you don't have a target right click will still change your target even with this on.  This is mainly to prevent accidentally changing targets in combat when trying to adjust your camera."],
 			order = 100,
 			get = function()
 				return GetCVar("NP_PreventRightClickTargetChange") == "1"
@@ -675,8 +677,8 @@ Nampower.cmdtable = {
 if Nampower:HasMinimumVersion(2, 8, 6) then
 	Nampower.cmdtable.args.NP_NameplateDistance = {
 		type = "range",
-		name = "Nameplate Distance",
-		desc = "The distance in yards to show nameplates",
+		name = L["Nameplate Distance"],
+		desc = L["The distance in yards to show nameplates"],
 		order = 110,
 		min = 5,
 		max = 200,
