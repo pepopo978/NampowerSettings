@@ -702,6 +702,8 @@ NampowerOptions.defaultMinimapPosition = 180
 NampowerOptions.independentProfile = true
 NampowerOptions.hideWithoutStandby = false
 
+NampowerOptions:RegisterDB("NampowerSettingsDB")
+
 NampowerOptions.OnMenuRequest = Nampower.cmdtable
 local args = AceLibrary("FuBarPlugin-2.0"):GetAceOptionsDataTable(NampowerOptions)
 for k, v in pairs(args) do
